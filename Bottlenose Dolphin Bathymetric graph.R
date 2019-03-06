@@ -29,7 +29,6 @@ head(Effort)
 
 #-----------Coordinates have now been converted into WGS84 format--------------------
 
-Effort %>%slice(1924:8171)
-Effort
+
 
 
