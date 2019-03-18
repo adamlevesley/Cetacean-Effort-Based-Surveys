@@ -6,6 +6,7 @@ library(rnaturalearthhires)
 library(viridis)
 library(rgbif)
 library(mapview)
+library(marmap)
 
 ##------------------------------
 
@@ -45,12 +46,13 @@ Bottlenose_map <- getNOAA.bathy(lon1 = -68.318, lon2 = 14.548,
                           lat1 = 34.91, lat2 = 62.17, resolution = 1, keep = TRUE)
 
 summary.bathy(Bottlenose_map)
-map <- plot.bathy(Bottlenose_map, image = TRUE, land = TRUE, lwd = 0.1, asp = NA,
+plot.bathy(Bottlenose_map, image = TRUE, land = TRUE, lwd = 0.1, asp = NA,
            bpal = list(c(0,max(Bottlenose_map), greys), c(min(Bottlenose_map), 0, blues)))+
   scaleBathy(Bottlenose_map, deg = 2, x = "bottomleft", inset = 15)+
-  plot(points, par(bg = NA))
-
   plot(points)+
+  title("Bottlenose Dolphin Observations")
+
+    plot(points)+
     plot(Bottlenose_map, image = TRUE, land = TRUE, lwd = 0.1, asp = NA,
                bpal = list(c(0, max(Bottlenose_map), greys), c(min(Bottlenose_map), 0, blues)))+
     scaleBathy(Bottlenose_map, deg = 2, x = "bottomleft", inset = 7.5)+
@@ -60,8 +62,12 @@ map <- plot.bathy(Bottlenose_map, image = TRUE, land = TRUE, lwd = 0.1, asp = NA
 #points needs to be just the Lat and Lon coordinates subsetted from Bottlenose_dolphin this should resolve the issue of it being 30+mb.
 
 points <- subset(Bottlenose_Dolphin,
-                 select=c(LonS, LatS),bg=NA)
-plot(points) 
+                 select=c(LonS, LatS),axes)
+plot(x,y,xaxt = "n")
+axis(side = 1, at = x, labels = FALSE, tck = -0.01)
+
+
+plot(points, xaxt = "n", labels = FALSE)
   
 #Use Mapview package to create interactive maps showing the difference between effort and casual based data surveys plotted on the same map, 
 # this can be done for each individual species. 
@@ -72,7 +78,8 @@ head(fortify(Bottlenose_map))
 ggplot(Bottlenose_map) + geom_contour(aes(x=x,y=y, z=z)) + coord_map()
 
 Bottlenose_map.fn <- fortify(Bottlenose_map)
-ggplot(Bottlenose_map.fn, aes(x=x, y=y)) + coord_quickmap()+
+
+map <- ggplot(Bottlenose_map.fn, aes(x=x, y=y)) + coord_quickmap()+
   geom_raster(aes(fill=z), data = Bottlenose_map.fn[Bottlenose_map.fn$z <= 0,])+
   geom_contour(aes(z=z),
                breaks=c(-100, -200, -500, -1000, -2000, -4000),
@@ -80,12 +87,17 @@ ggplot(Bottlenose_map.fn, aes(x=x, y=y)) + coord_quickmap()+
                )+
   scale_x_continuous(expand = c(0,0))+
   scale_y_continuous(expand = c(0,0))+
-geom_point(points)
-
+  geom_point()
+map
+?geom_point
+geom_point(mapping = aes(Bottlenose_map.fn), data = points)
+geom_point(mapping = NULL, data = points)
 points <- st_as_sf(points,
                    coords = c("LonS", "LatS"),
                    crs = st_crs(Bottlenose_map.fn))
 
+fortify(points)
+summary(points)
 mapview(Bottlenose_map.fn, zcol = "points")
 
 
